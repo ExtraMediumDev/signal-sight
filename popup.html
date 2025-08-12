@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CSG Verify</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="title">Signal Sight</div>
+          <div class="subtitle">Assessments overview</div>
+          <div id="status" class="status-note">Reads data already on the CodeSignal page. No account data is stored.</div>
+        </div>
+        <div class="toolbar">
+          <button id="force" class="btn primary">Refresh</button>
+          <button id="exportCsv" class="btn">Export CSV</button>
+          <button id="exportJson" class="btn">Export JSON</button>
+        </div>
+      </header>
+      <div class="status-note" role="note">
+        <span class="icon" aria-hidden="true"></span>
+        <span>Reads data already on the CodeSignal page. <strong>No account data is stored.</strong></span>
+      </div>
+
+      <!-- cards -->
+      <main id="cards" class="cards"></main>
+
+      <!-- live log (collapsed by default) -->
+      <section class="log-section">
+        <button id="toggleLog" class="btn ghost" aria-expanded="false">Show live log</button>
+        <div id="logWrap" class="hidden">
+          <pre id="log" class="log"></pre>
+        </div>
+      </section>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
