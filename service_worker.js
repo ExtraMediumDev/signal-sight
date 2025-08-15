@@ -1,5 +1,12 @@
 // MV3 service worker – caches items per tab and coordinates refreshes
 
+importScripts('ExtPay.js'); // loads the library file
+
+const EXTPAY_ID = 'signal-sight';  // <-- replace with your actual id
+let extpay = ExtPay(EXTPAY_ID);
+extpay.startBackground();
+
+
 const cache = new Map(); // tabId -> { items: [...] }
 
 function log(line) {
@@ -7,6 +14,44 @@ function log(line) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+
+  if (msg?.type === 'PAY_GET_USER') {
+    (async () => {
+      try {
+        // Recreate in callbacks if needed to avoid undefined in SW event lifecycles. :contentReference[oaicite:5]{index=5}
+        const ext = ExtPay(EXTPAY_ID);
+        const user = await ext.getUser();   // { paid, subscriptionStatus, plan, ... } :contentReference[oaicite:6]{index=6}
+        sendResponse({ ok: true, user });
+      } catch (e) {
+        sendResponse({ ok: false, error: String(e) });
+      }
+    })();
+    return true; // async
+  }
+
+  if (msg?.type === 'PAY_OPEN_CHECKOUT') {
+    try {
+      const ext = ExtPay(EXTPAY_ID);
+      // Optionally support planNickname: msg.plan
+      ext.openPaymentPage(msg?.plan || undefined); // opens tab to pay/manage. :contentReference[oaicite:7]{index=7}
+      sendResponse({ ok: true });
+    } catch (e) {
+      sendResponse({ ok: false, error: String(e) });
+    }
+    return true;
+  }
+
+  if (msg?.type === 'PAY_OPEN_LOGIN') {
+    try {
+      const ext = ExtPay(EXTPAY_ID);
+      ext.openLoginPage(); // for users who already paid on another profile/device. :contentReference[oaicite:8]{index=8}
+      sendResponse({ ok: true });
+    } catch (e) {
+      sendResponse({ ok: false, error: String(e) });
+    }
+    return true;
+  }
+
   try {
     if (msg?.type === 'CSG_SAVE') {
       // Content script pushes parsed items here

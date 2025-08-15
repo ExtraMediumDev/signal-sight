@@ -2,25 +2,22 @@
   "manifest_version": 3,
   "name": "Signal Sight",
   "version": "1.0",
-  "permissions": ["tabs", "activeTab"],
+  "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://codesignal.com/*",
     "https://*.codesignal.com/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://extensionpay.com"
+  },
   "content_scripts": [{
-    "matches": [
-      "https://codesignal.com/*",
-      "https://*.codesignal.com/*"
-    ],
+    "matches": ["https://codesignal.com/*", "https://*.codesignal.com/*"],
     "js": ["content.js"],
     "run_at": "document_start"
   }],
   "web_accessible_resources": [{
     "resources": ["inpage.js"],
-    "matches": [
-      "https://codesignal.com/*",
-      "https://*.codesignal.com/*"
-    ]
+    "matches": ["https://codesignal.com/*","https://*.codesignal.com/*"]
   }],
   "action": { "default_popup": "popup.html" },
   "background": { "service_worker": "service_worker.js" }

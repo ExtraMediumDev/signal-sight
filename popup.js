@@ -14,6 +14,76 @@ let logOpen = false;
 let logBuffer = [];
 const MAX_BUF = 400;
 
+// --- Payment helpers ---
+async function payGetUser() {
+  try { return (await chrome.runtime.sendMessage({ type: 'PAY_GET_USER' }))?.user || null; }
+  catch { return null; }
+}
+async function payOpenCheckout(plan) {
+  try { await chrome.runtime.sendMessage({ type: 'PAY_OPEN_CHECKOUT', plan }); } catch {}
+}
+async function payOpenLogin() {
+  try { await chrome.runtime.sendMessage({ type: 'PAY_OPEN_LOGIN' }); } catch {}
+}
+
+// --- Paywall UI ---
+function renderPaywall() {
+  if (document.getElementById('paywallOverlay')) return;
+  document.body.classList.add('locked');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'paywallOverlay';
+  overlay.className = 'paywall-overlay';
+  overlay.innerHTML = `
+    <div class="paywall-card">
+      <h2>Unlock full report</h2>
+      <p>Activate your license to view assessments, scores, rules, and exports.</p>
+      <div class="paywall-actions">
+        <button id="pw-unlock" class="btn-primary">Unlock</button>
+        <button id="pw-login" class="btn-link">I already paid</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const pollUntilPaid = async () => {
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const u = await payGetUser();
+      if (u && (u.paid || u.subscriptionStatus === 'active')) {
+        removePaywall();
+        // kick off normal data load after unlock
+        initDataLoad();
+        return;
+      }
+    }
+  };
+
+  overlay.querySelector('#pw-unlock').addEventListener('click', async () => {
+    log('Opening checkout…');
+    await payOpenCheckout();
+    pollUntilPaid();
+  });
+  overlay.querySelector('#pw-login').addEventListener('click', async () => {
+    log('Opening login…');
+    await payOpenLogin();
+    pollUntilPaid();
+  });
+}
+function removePaywall() {
+  document.body.classList.remove('locked');
+  const el = document.getElementById('paywallOverlay');
+  if (el) el.remove();
+}
+
+// Gatekeeper. Returns true if paid, otherwise shows paywall and returns false.
+async function ensurePaid() {
+  const u = await payGetUser();
+  if (u && (u.paid || u.subscriptionStatus === 'active')) return true;
+  renderPaywall();
+  return false;
+}
+
 function log(line) {
   const ts = new Date().toLocaleTimeString();
   const full = `[${ts}] ${line}`;
@@ -207,7 +277,8 @@ exportJsonBtn.addEventListener('click', () => {
 });
 
 // initial load
-(async () => {
+// --- gated init ---
+async function initDataLoad() {
   setStatus('Connecting…');
   const r1 = await ask('CSG_GET_DATA');
   if (r1?.payload) return render(r1.payload);
@@ -217,4 +288,14 @@ exportJsonBtn.addEventListener('click', () => {
     const r2 = await ask('CSG_GET_DATA');
     render(r2?.payload || []);
   }, 900);
+}
+
+(async () => {
+  setStatus('Checking access…');
+  if (await ensurePaid()) {
+    initDataLoad();
+  } else {
+    setStatus('Locked until activated.');
+  }
 })();
+

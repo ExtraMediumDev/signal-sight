@@ -186,3 +186,35 @@ html, body {
 @media (max-width: 560px) {
   .card-body { grid-template-columns: 1fr; }
 }
+
+/* --- Paywall overlay --- */
+body.locked { overflow: hidden; }
+
+.paywall-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: radial-gradient(1200px 500px at 50% -10%, rgba(99,102,241,.10), transparent) #f7f9fc;
+}
+
+.paywall-card {
+  width: 100%; max-width: 520px;
+  background: #fff;
+  border: 1px solid #e8ecf4;
+  border-radius: 16px;
+  box-shadow: 0 18px 60px rgba(28,56,100,.10);
+  padding: 20px 20px 16px;
+  text-align: center;
+}
+
+.paywall-card h2 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+.paywall-card p  { margin: 0 0 12px; color: #64748b; font-size: 13px; }
+.paywall-actions { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+
+.btn-primary {
+  background: #eef2ff; border: 1px solid #cfd8ff; color: #1e2a78;
+  border-radius: 9999px; padding: 8px 12px; font-weight: 700; cursor: pointer;
+}
+.btn-link {
+  background: transparent; border: none; color: #3749bd; font-weight: 700; cursor: pointer;
+}
