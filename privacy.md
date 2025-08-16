@@ -103,5 +103,4 @@ We may update this policy to reflect product, legal, or operational changes. Mat
 ## Contact
 
 Questions or concerns? Reach us at:  
-**Email:** support@extramedium.dev  
-*(Replace with your preferred contact method if you fork or rebrand this project.)*
+**Email:** oyggpt@gmail.com
